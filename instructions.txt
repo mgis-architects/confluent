@@ -1,0 +1,172 @@
+
+****************************************
+
+3 Linux Servers are required
+
+These currently are; 10.9.3.4, 10.9.3.5, 10.9.3.6
+
+On 10.9.3.4
+Zookeeper port is 22181
+Kafka port is 29092
+
+On 10.9.3.5
+Zookeeper port is 32181
+Kafka port is 39092
+
+On 10.9.3.6
+Zookeeper port is 42181
+Kafka port 39092
+
+*****************************************
+Open ports on each server
+*****************************************
+On each server (10.9.3.4, 10.9.3.5, 10.9.3.6)
+open the following ports ...
+systemctl status firewalld
+firewall-cmd --get-active-zones
+firewall-cmd --zone=public --list-ports
+
+firewall-cmd --zone=public --add-port=22888/tcp --permanent
+firewall-cmd --zone=public --add-port=23888/tcp --permanent
+firewall-cmd --zone=public --add-port=22181/tcp --permanent
+firewall-cmd --zone=public --add-port=32181/tcp --permanent
+firewall-cmd --zone=public --add-port=42181/tcp --permanent
+
+firewall-cmd --reload
+firewall-cmd --zone=public --list-ports
+
+*****************************************
+Install docker / zookepper
+*****************************************
+On Server1 (10.9.3.4)
+Ensure docker is installed ... if not install docker using bashInstallDocker.sh - installing docker must be run as root
+
+run script zkServer1.sh - must be run as root
+
+On Server2 (10.9.3.5)
+Ensure docker is installed ... if not install docker using bashInstallDocker.sh - installing docker must be run as root
+
+run script zkServer2.sh - must be run as root
+
+On Server3 (10.9.3.6)
+Ensure docker is installed ... if not install docker using bashInstallDocker.sh - installing docker must be run as root
+
+run script zkServer3.sh - must be run as root
+
+*******************************************
+validate zookeeper is running
+*******************************************
+On each server - command must be run as root
+sudo su -
+
+docker logs {zookeper name}
+
+docker logs zk-1 
+docker logs zk-2
+docker logs zk-3
+
+on 10.9.3.4
+docker run --net=host --rm confluentinc/cp-zookeeper:3.1.2 bash -c "echo stat | nc 10.9.3.4 22181 | grep Mode"
+
+on 10.9.3.5
+docker run --net=host --rm confluentinc/cp-zookeeper:3.1.2 bash -c "echo stat | nc 10.9.3.5 32181 | grep Mode"
+
+on 10.9.3.6
+docker run --net=host --rm confluentinc/cp-zookeeper:3.1.2 bash -c "echo stat | nc 10.9.3.6 42181 | grep Mode"
+
+
+********************************************
+install kafka servers
+********************************************
+On 10.9.3.4
+run script kfServer1.sh - must be run as root
+
+On 10.9.3.5
+run script kfServer2.sh - must be run as root
+
+On 10.9.3.6
+run script kfServer3.sh - must be run as root
+
+*******************************************
+validate kafka is running
+*******************************************
+On each server - command must be run as root
+sudo su -
+
+docker logs {kafka name}
+
+docker logs kafka-1
+docker logs kafka-2
+docker logs kafka-3
+
+
+********************************************
+Create topic
+********************************************
+On server1 (10.9.3.4)
+running under root ...
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --create --topic foo --partitions 3 --replication-factor 3 --if-not-exists --zookeeper localhost:22181
+
+can be run from other servers ... amend port number (for 10.9.3.5 port = 32181) (for 10.9.3.6 port =43181)
+
+
+********************************************
+Validate topic has been created
+********************************************
+On server1 (10.9.3.4)
+running under root ...
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --describe --topic foo --zookeeper localhost:22181
+
+can be run from other servers ... amend port number (for 10.9.3.5 port = 32181) (for 10.9.3.6 port =43181)
+
+
+********************************************
+Isr not showing correctly
+********************************************
+Topic:bar       PartitionCount:3        ReplicationFactor:3     Configs:
+        Topic: bar      Partition: 0    Leader: 1003    Replicas: 1003,1001,1002        Isr: 1003,1001,1002
+        Topic: bar      Partition: 1    Leader: 1001    Replicas: 1001,1002,1003        Isr: 1001
+        Topic: bar      Partition: 2    Leader: 1002    Replicas: 1002,1003,1001        Isr: 1002,1003,1001
+
+NOTE ... the above can vary
+I think Isr in this instance should be Isr: 1001,1002,1003
+
+********************************************
+Publishing message
+********************************************
+Create 1 message ...
+On server1 (10.9.3.4)
+running under root ...
+
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 bash -c "seq 1 | kafka-console-producer --request-required-acks 1 --broker-list localhost:29092 --topic bar && echo 'Produced 1 messages.'"
+
+can be run from other servers ... amend port number (for 10.9.3.5 port = 32181) (for 10.9.3.6 port =43181)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
