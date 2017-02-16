@@ -31,6 +31,9 @@ firewall-cmd --zone=public --add-port=23888/tcp --permanent
 firewall-cmd --zone=public --add-port=22181/tcp --permanent
 firewall-cmd --zone=public --add-port=32181/tcp --permanent
 firewall-cmd --zone=public --add-port=42181/tcp --permanent
+firewall-cmd --zone=public --add-port=29092/tcp --permanent
+firewall-cmd --zone=public --add-port=39092/tcp --permanent
+firewall-cmd --zone=public --add-port=49092/tcp --permanent
 
 firewall-cmd --reload
 firewall-cmd --zone=public --list-ports
@@ -105,7 +108,7 @@ Create topic
 ********************************************
 On server1 (10.9.3.4)
 running under root ...
-docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --create --topic foo --partitions 3 --replication-factor 3 --if-not-exists --zookeeper localhost:22181
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --create --topic foo --partitions 3 --replication-factor 3 --if-not-exists --zookeeper 10.9.3.4:22181
 
 can be run from other servers ... amend port number (for 10.9.3.5 port = 32181) (for 10.9.3.6 port =43181)
 
@@ -115,21 +118,19 @@ Validate topic has been created
 ********************************************
 On server1 (10.9.3.4)
 running under root ...
-docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --describe --topic foo --zookeeper localhost:22181
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --describe --topic foo --zookeeper 10.9.3.4:22181
 
 can be run from other servers ... amend port number (for 10.9.3.5 port = 32181) (for 10.9.3.6 port =43181)
 
 
 ********************************************
-Isr not showing correctly
+the output should show something like ...
 ********************************************
 Topic:bar       PartitionCount:3        ReplicationFactor:3     Configs:
-        Topic: bar      Partition: 0    Leader: 1003    Replicas: 1003,1001,1002        Isr: 1003,1001,1002
-        Topic: bar      Partition: 1    Leader: 1001    Replicas: 1001,1002,1003        Isr: 1001
-        Topic: bar      Partition: 2    Leader: 1002    Replicas: 1002,1003,1001        Isr: 1002,1003,1001
+        Topic: bar      Partition: 0    Leader: 1001    Replicas: 1001,1003,1002        Isr: 1001,1003,1002
+        Topic: bar      Partition: 1    Leader: 1002    Replicas: 1002,1001,1003        Isr: 1002,1001,1003
+        Topic: bar      Partition: 2    Leader: 1003    Replicas: 1003,1002,1001        Isr: 1003,1002,1001
 
-NOTE ... the above can vary
-I think Isr in this instance should be Isr: 1001,1002,1003
 
 ********************************************
 Publishing message
@@ -142,6 +143,14 @@ docker run --net=host --rm confluentinc/cp-kafka:3.1.2 bash -c "seq 1 | kafka-co
 
 can be run from other servers ... amend port number (for 10.9.3.5 port = 32181) (for 10.9.3.6 port =43181)
 
+
+********************************************
+Consuming messages
+********************************************
+On server1 (10.9.3.4)
+running under root
+
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-console-consumer --bootstrap-server 10.9.0.4:29092 --topic bar --new-consumer --from-beginning --max-messages 42
 
 
 
