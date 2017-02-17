@@ -3,7 +3,7 @@
 systemctl status firewalld
 firewall-cmd --get-active-zones
 firewall-cmd --zone=public --list-ports
-firewall-cmd --zone=public --add-port=9091/tcp --permanent
+firewall-cmd --zone=public --add-port=9021/tcp --permanent
 firewall-cmd --reload
 firewall-cmd --zone=public --list-ports
 #
