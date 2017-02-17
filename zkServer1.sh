@@ -1,5 +1,19 @@
 #!/bin/bash
 #
+systemctl status firewalld
+firewall-cmd --get-active-zones
+firewall-cmd --zone=public --list-ports
+firewall-cmd --zone=public --add-port=22888/tcp --permanent
+firewall-cmd --zone=public --add-port=23888/tcp --permanent
+firewall-cmd --zone=public --add-port=22181/tcp --permanent
+firewall-cmd --zone=public --add-port=32181/tcp --permanent
+firewall-cmd --zone=public --add-port=42181/tcp --permanent
+firewall-cmd --zone=public --add-port=29092/tcp --permanent
+firewall-cmd --zone=public --add-port=39092/tcp --permanent
+firewall-cmd --zone=public --add-port=49092/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --zone=public --list-ports
+#
 docker run -d \
    --net=host \
    --name=zk-1 \
