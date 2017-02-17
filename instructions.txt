@@ -1,9 +1,11 @@
 
 ****************************************
 
-3 Linux Servers are required
+6 Linux Servers are required
 
-These currently are; 10.9.3.4, 10.9.3.5, 10.9.3.6
+These currently are; 10.9.3.4, 10.9.3.5, 10.9.3.6 - for Zookeeper / Kafka
+                     10.9.3.7, 10.9.3.8 - for Schema-registry, REST proxy, Connect
+                     10.9.3.9 - Control Centre
 
 On 10.9.3.4
 Zookeeper port is 22181
@@ -21,7 +23,7 @@ Kafka port 39092
 Open ports on each server
 *****************************************
 On each server (10.9.3.4, 10.9.3.5, 10.9.3.6)
-open the following ports ...
+The following ports are opened in the zkServer* script
 systemctl status firewalld
 firewall-cmd --get-active-zones
 firewall-cmd --zone=public --list-ports
@@ -154,28 +156,41 @@ docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-console-consumer --
 
 
 
+********************************************
+Schema/REST/Connect
+********************************************
+On Server4 and Server3 (10.9.3.7 / 10.9.3.8)
+running under root ..
 
+copy the srServer1.sh to 10.9.3.7 ...
+scp srServer1.sh user@10.9.3.7:"/home/{user}/"
+replace user with a valid userid
+ 
+run script on server 10.9.3.7 .... sudo ./srServer1.sh
 
+On Server3 (10.9.3.8)
+running uner root ..
 
+copy the srServer2.sh to 10.9.3.8 ...
+scp srServer2.sh user@10.9.3.8:"/home/{user}/"
+replace user with a valid userid
 
+run script on server 10.9.3.8 .... sudo ./srServer2.sh
 
+check docker logs ...
 
+*******************************************
+Control Center
+*******************************************
 
+On server5 (10.9.3.9)
+running under root ..
 
+copy ControlCentre.sh to 10.9.3.9 ...
+scp ControlCentre.sh user@10.9.3.9:"/home/{user}/"
+replace user with a valid userid
 
+run script on server 10.9.3.8 .... sudo ./ControlCentre.sh
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+check docker logs ...
 
