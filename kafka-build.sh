@@ -308,7 +308,7 @@ function run()
   #  oracleProfile
   #  mountMedia
     openZkKafkaPorts
-    installZooKeeperKafka
+    installServer
 }
 
 

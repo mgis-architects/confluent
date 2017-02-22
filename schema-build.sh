@@ -301,8 +301,8 @@ function installConnect()
        -e CONNECT_VALUE_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
        -e CONNECT_INTERNAL_KEY_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
        -e CONNECT_INTERNAL_VALUE_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
-       -e CONNECT_REST_ADVERTISED_HOST_NAME=${schemaserver} \ 
-       confluentinc/cp-kafka-connect:3.1.2 
+       -e CONNECT_REST_ADVERTISED_HOST_NAME=${schemaserver} \
+       confluentinc/cp-kafka-connect:3.1.2
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
