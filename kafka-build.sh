@@ -263,7 +263,7 @@ function installKafka()
 
     docker run -d \
         --net=host \
-        --name=kafka-1 \
+        --name=kafka-${SERVER_INSTANCE} \
         -e KAFKA_ZOOKEEPER_CONNECT=${zkKafkaSer1}:${zkpclient},${zkKafkaSer2}:${zkpclient},${zkKafkaSer3}:${zkpclient} \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${kafkaserver}:${kafkapclient} \
         confluentinc/cp-kafka:3.1.2
