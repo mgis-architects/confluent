@@ -437,8 +437,6 @@ resource "azurerm_virtual_machine" "zkvm3" {
     }
   }
 
-#    host = "${azurerm_network_interface.nic.private_ip_address}"
-
   connection {
     user = "${var.adminuser}"
     host = "10.9.3.6"
@@ -449,7 +447,7 @@ resource "azurerm_virtual_machine" "zkvm3" {
   }
 
    provisioner "file" {
-     source = "../../../confluent/kafka-build.sh"
+     source = "kafka-build.sh"
      destination = "/home/${var.adminuser}/kafka-build.sh"
    }
 
@@ -513,8 +511,6 @@ resource "azurerm_virtual_machine" "prvm1" {
     }
   }
 
-#    host = "${azurerm_network_interface.nic.private_ip_address}"
-
   connection {
     user = "${var.adminuser}"
     host = "10.9.3.7"
@@ -525,7 +521,7 @@ resource "azurerm_virtual_machine" "prvm1" {
   }
 
    provisioner "file" {
-     source = "../../../confluent/schema-build.sh"
+     source = "schema-build.sh"
      destination = "/home/${var.adminuser}/schema-build.sh"
    }
 
@@ -587,8 +583,6 @@ resource "azurerm_virtual_machine" "prvm2" {
     }
   }
 
-#    host = "${azurerm_network_interface.nic.private_ip_address}"
-
   connection {
     user = "${var.adminuser}"
     host = "10.9.3.8"
@@ -599,7 +593,7 @@ resource "azurerm_virtual_machine" "prvm2" {
   }
 
    provisioner "file" {
-     source = "../../../confluent/schema-build.sh"
+     source = "schema-build.sh"
      destination = "/home/${var.adminuser}/schema-build.sh"
    }
 
@@ -661,8 +655,6 @@ resource "azurerm_virtual_machine" "ccvm1" {
     }
   }  
 
-#    host = "${azurerm_network_interface.nic.private_ip_address}"
-    
   connection {
     user = "${var.adminuser}"
     host = "10.9.3.9"
@@ -673,7 +665,7 @@ resource "azurerm_virtual_machine" "ccvm1" {
   }
 
    provisioner "file" {
-     source = "../../../confluent/cc-build.sh"
+     source = "cc-build.sh"
      destination = "/home/${var.adminuser}/cc-build.sh"
    }
 
