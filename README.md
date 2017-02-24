@@ -35,5 +35,15 @@ Replace all instance of {userid} with a userid
 
 terraform apply -var-file=~/confluent-azure.tfvars
 
+### Step 3 Create Topic
+
+To create a topic called bar with 3 patitions and replicated 3 times
+
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --create --topic bar --partitions 3 --replication-factor 3 --if-not-exists --zookeeper localhost:22181
+
+to check the topic has been created, use the following command 
+
+docker run --net=host --rm confluentinc/cp-kafka:3.1.2 kafka-topics --describe --topic bar --zookeeper localhost:22181
+
 ### Notes
 Installation takes up to 15 minutes
