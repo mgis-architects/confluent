@@ -16,7 +16,7 @@ git clone https://github.com/mgis-architects/confluent
 
 cp confluent-build.ini ~/confluent-build.ini
 
-Modify ~/kafka-build.ini
+Modify ~/confluent-build.ini
 
 Modify mediaStrorageAccountDetails ... these are not yet used, so can be removed
 
@@ -31,7 +31,7 @@ cp ~/confluent/confluent-azure.tfvars ~/confluent-azure.tfvars
 
 Modify ~/confluent-azure.tfvars
 
-Replace all instance of {userid} with a userid 
+Replace all instance of <variable> with values
 
 terraform apply -var-file=~/confluent-azure.tfvars
 
