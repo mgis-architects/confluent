@@ -300,7 +300,7 @@ resource "azurerm_virtual_machine" "zkvm1" {
   }
 
    provisioner "file" { 
-     source = "../../../confluent/kafka-build.sh" 
+     source = "kafka-build.sh" 
      destination = "/home/${var.adminuser}/kafka-build.sh"
    } 
 
@@ -375,7 +375,7 @@ resource "azurerm_virtual_machine" "zkvm2" {
   }
 
    provisioner "file" {
-     source = "../../../confluent/kafka-build.sh"
+     source = "kafka-build.sh"
      destination = "/home/${var.adminuser}/kafka-build.sh"
    }
 
