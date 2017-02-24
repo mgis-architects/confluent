@@ -6,7 +6,7 @@
 #
 # USAGE:
 #
-#    sudo kafka-build.sh ~/kafka-build.ini instance
+#    sudo kafka-build.sh ~/confluent-build.ini instance
 #
 # USEFUL LINKS: 
 # 

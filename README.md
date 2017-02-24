@@ -14,14 +14,14 @@ Ensure terraform environment variables are set . .tf
 
 git clone https://github.com/mgis-architects/confluent
 
-cp kafka-build.ini ~/kafka-build.ini
+cp confluent-build.ini ~/confluent-build.ini
 
 Modify ~/kafka-build.ini
 
 Modify mediaStrorageAccountDetails ... these are not yet used, so can be removed
 
 
-### Step 2 Execute the script using the Terradata repo 
+### Step 2 Execute the script using the Terraform repo 
 
 git clone https://github.com/mgis-architects/terraform
 
