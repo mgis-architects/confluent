@@ -35,7 +35,7 @@ Replace all instance of {userid} with a userid
 
 terraform apply -var-file=~/confluent-azure.tfvars
 
-### Step 3 Create Topic
+### Step 3 Create Topic 
 
 To create a topic called bar with 3 patitions and replicated 3 times
 
