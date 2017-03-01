@@ -1,6 +1,6 @@
 #!/bin/bash
 #########################################################################################
-## Kafka installations
+## confluentOneNode installations
 #########################################################################################
 # This script only supports Azure currently, mainly due to the disk persistence method
 # Installed Zookeeper / Kafka / Schema / Rest / Connect / Control-Center on a single server
