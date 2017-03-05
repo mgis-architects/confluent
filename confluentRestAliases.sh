@@ -4,6 +4,18 @@ export confluentRestUrl=http://10.135.30.7:28082
 #
 # Note consumer.commit *must* be made to the specific REST proxy instance holding the consumer instance.
 #
+# EXAMPLES
+#############
+# consumer.createbinary groupA instance1
+# consumer.readbinary groupA instance1 topic1
+##
+# consumer.createavro groupA instance2
+# consumer.readavro groupA instance2 topic1
+##
+# consumer.commit groupA instance1
+#
+# consumer.delete groupA instance1
+
 
 alias brokers.list='curl -X GET -H "Content-Type: application/json" ${confluentRestUrl}/brokers 2> /dev/null | python -mjson.tool'
 function topics.list() { curl -X GET -H "Content-Type: application/json" ${confluentRestUrl}/topics/${1} 2>/dev/null | python -mjson.tool; }
