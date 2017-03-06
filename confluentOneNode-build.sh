@@ -65,21 +65,25 @@ function installRPMs()
     INSTALL_RPM_LOG=$LOG_DIR/yum.${g_prog}_install.log.$$
 
     STR=""
-    STR="$STR java-1.8.0-openjdk.x86_64i docker-engine-selinux-1.12.6-1.el7.centos docker-engine-1.12.6-1.el7.centos"
-    
+   # STR="$STR java-1.8.0-openjdk.x86_64i docker-engine-selinux-1.12.6-1.el7.centos docker-engine-1.12.6-1.el7.centos"
+    STR="$STR java-1.8.0-openjdk.x86_64i docker-ce-17.03.0.ce-1.el7.centos"
+ 
     unset DOCKER_HOST DOCKER_TLS_VERIFY
-    yum -y remove docker container-selinux docker-rhel-push-plugin docker-common docker-engine-selinux docker-engine yum-utils
+    yum -y remove docker docker-ce container-selinux docker-rhel-push-plugin docker-common docker-engine-selinux docker-engine yum-utils
 
     yum install -y yum-utils
 
+   # yum-config-manager \
+   #    --add-repo \
+   #    https://docs.docker.com/engine/installation/linux/repo_files/centos/docker.repo
+
     yum-config-manager \
        --add-repo \
-       https://docs.docker.com/engine/installation/linux/repo_files/centos/docker.repo
+       https://download.docker.com/linux/centos/docker-ce.repo
 
     yum makecache fast
     
-    yum list docker-engine.x86_64  --showduplicates |sort -r > $INSTALL_RPM_LOG
-    yum list docker-engine.selinux-1.12.6-1.el7.centos  --showduplicates |sort -r > $INSTALL_RPM_LOG
+    yum list docker-ce  --showduplicates |sort -r > $INSTALL_RPM_LOG
 
     echo "installRPMs(): to see progress tail $INSTALL_RPM_LOG"
     
@@ -377,8 +381,8 @@ function installControlCentreServer()
 ##############################################################
 function installServer()
 {
-    installZookeeper 
-    installKafka
+   # installZookeeper 
+   # installKafka
     installSchemaServer
     installRestServer
     installConnectionServer

@@ -64,21 +64,21 @@ function installRPMs()
     INSTALL_RPM_LOG=$LOG_DIR/yum.${g_prog}_install.log.$$
 
     STR=""
-    STR="$STR java-1.8.0-openjdk.x86_64i docker-engine-selinux-1.12.6-1.el7.centos docker-engine-1.12.6-1.el7.centos"
-    
+   # STR="$STR java-1.8.0-openjdk.x86_64i docker-engine-selinux-1.12.6-1.el7.centos docker-engine-1.12.6-1.el7.centos"
+    STR="$STR java-1.8.0-openjdk.x86_64i docker-ce-17.03.0.ce-1.el7.centos"
+
     unset DOCKER_HOST DOCKER_TLS_VERIFY
-    yum -y remove docker container-selinux docker-rhel-push-plugin docker-common docker-engine-selinux docker-engine yum-utils
+    yum -y remove docker docker-ce container-selinux docker-rhel-push-plugin docker-common docker-engine-selinux docker-engine yum-utils
 
     yum install -y yum-utils
 
     yum-config-manager \
        --add-repo \
-       https://docs.docker.com/engine/installation/linux/repo_files/centos/docker.repo
+       https://download.docker.com/linux/centos/docker-ce.repo
 
     yum makecache fast
     
-    yum list docker-engine.x86_64  --showduplicates |sort -r > $INSTALL_RPM_LOG
-    yum list docker-engine.selinux-1.12.6-1.el7.centos  --showduplicates |sort -r > $INSTALL_RPM_LOG
+    yum list docker-ce  --showduplicates |sort -r > $INSTALL_RPM_LOG
 
     echo "installRPMs(): to see progress tail $INSTALL_RPM_LOG"
     
@@ -91,109 +91,6 @@ function installRPMs()
     systemctl start docker > $INSTALL_RPM_LOG
     systemctl enable docker > $INSTALL_RPM_LOG
 
-
-}
-
-
-function oracleProfile() 
-{
-    cat >> /home/oracle/.bash_profile << EOForacleProfile
-    export JAVA_HOME=/usr/lib/jvm
-    export LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server:$LD_LIBRARY_PATH
-    export PATH=$PATH:/u01/app/oracle/product/12.3.0/ogg4bd
-EOForacleProfile
-}
-
-function mountMedia() {
-
-    if [ -f /mnt/software/ogg4bd12301/V839824-01.zip ]; then
-    
-        log "mountMedia(): Filesystem already mounted"
-        
-    else
-    
-        umount /mnt/software
-    
-        mkdir -p /mnt/software
-        
-        eval `grep mediaStorageAccountKey $INI_FILE`
-        eval `grep mediaStorageAccount $INI_FILE`
-        eval `grep mediaStorageAccountURL $INI_FILE`
-
-        l_str=""
-        if [ -z $mediaStorageAccountKey ]; then
-            l_str=$l_str || "mediaStorageAccountKey not found in $INI_FILE; "
-        fi
-        if [ -z $mediaStorageAccount ]; then
-            l_str=$l_str || "mediaStorageAccount not found in $INI_FILE; "
-        fi
-        if [ -z $mediaStorageAccountURL ]; then
-            l_str=$l_str || "mediaStorageAccountURL not found in $INI_FILE; "
-        fi
-        if ! [ -z $l_str ]; then
-            fatalError "mountMedia(): $l_str"
-        fi
-
-        cat > /etc/cifspw << EOF1
-username=${mediaStorageAccount}
-password=${mediaStorageAccountKey}
-EOF1
-
-        cat >> /etc/fstab << EOF2
-//${mediaStorageAccountURL}     /mnt/software   cifs    credentials=/etc/cifspw,vers=3.0,gid=54321      0       0
-EOF2
-
-        mount -a
-        
-        if [ ! -f /mnt/software/ogg4bd12301/V839824-01.zip ]; then
-            fatalError "installGridHome(): media missing /mnt/software/ogg4bd12301/V839824-01.zip"
-        fi
-
-    fi
-    
-}
-
-installOgg4bd()
-{
-    local l_installdir=/u01/app/oracle/product/12.3.0/ogg4bd
-    local l_media=/mnt/software/ogg4bd12301/V839824-01.zip
-    local l_tmp_script=$LOG_DIR/$g_prog.installOgg4bd.$$.sh
-
-    if [ ! -f ${l_media} ]; then
-        fatalError "installGridHome(): media missing ${l_media}"
-    fi
-
-    cat > $l_tmp_script << EOFogg4bd
-
-    mkdir -p ${l_installdir}
-    
-    cd ${l_installdir}
-    
-    unzip ${l_media}
-    
-    tar -xf ggs_Adapters_Linux_x64.tar
-    
-    rm -f ggs_Adapters_Linux_x64.tar
-    
-    ./ggsci  << EOFggsci1
-       CREATE SUBDIRS 
-EOFggsci1
-
-    echo "PORT 7801" > ${l_installdir}/dirprm/mgr.prm
-    
-    ./ggsci  << EOFggsci2
-        START MGR 
-EOFggsci2
-
-    sleep 3
-    
-    ./ggsci  << EOFggsci2
-        INFO MGR 
-EOFggsci2
-
-EOFogg4bd
-
-    su - oracle -c "bash -x $l_tmp_script" |tee ${l_oracleinstall_log}
 
 }
 
@@ -220,18 +117,7 @@ function installControlCenter()
 {
 
     log "$g_prog.installControlCenter: Install Control Center  - instance ${SERVER_INSTANCE}"
-    # echo "retcode={$?}"
-    # echo "server-name=mmo275confluentvm${ID}"
-    # echo "SERVER_INSTANCE=${SERVER_INSTANCE}"
-    # echo "ip=${zkKafkaSer1}"
-    # echo "ip=${zkKafkaSer2}"
-    # echo "ip=${zkKafkaSer3}"
-    # echo "zkpclient=${zkpclient}"
-    # echo "low=${zkpserverlow}"
-    # echo "high=${zkpserverhigh}"
- 
     eval `grep srNoSer ${INI_FILE}`
-    # echo "NoSer=${srNoSer}"
 
     count=1
     connClust=""
