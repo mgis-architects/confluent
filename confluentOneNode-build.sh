@@ -122,7 +122,7 @@ function openZkKafkaPorts()
     #firewall-cmd --zone=public --add-port=${kafkapclient2}/tcp --permanent  >> $LOG_FILE
  
     firewall-cmd --zone=public --add-port=${ccport}/tcp --permanent
-
+ 
     firewall-cmd --reload  >> $LOG_FILE
     firewall-cmd --zone=public --list-ports  >> $LOG_FILE
 

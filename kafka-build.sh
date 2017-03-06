@@ -62,7 +62,7 @@ function fatalError ()
 function installRPMs()
 {
     INSTALL_RPM_LOG=$LOG_DIR/yum.${g_prog}_install.log.$$
-
+ 
     STR=""
     # STR="$STR java-1.8.0-openjdk.x86_64i docker-engine-selinux-1.12.6-1.el7.centos docker-engine-1.12.6-1.el7.centos"
     STR="$STR java-1.8.0-openjdk.x86_64i docker-ce-17.03.0.ce-1.el7.centos"

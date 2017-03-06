@@ -77,7 +77,7 @@ function installRPMs()
        https://download.docker.com/linux/centos/docker-ce.repo
 
     yum makecache fast
-    
+     
     yum list docker-ce  --showduplicates |sort -r > $INSTALL_RPM_LOG
 
     echo "installRPMs(): to see progress tail $INSTALL_RPM_LOG"

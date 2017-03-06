@@ -90,7 +90,7 @@ function installRPMs()
     #fi
     systemctl start docker > $INSTALL_RPM_LOG
     systemctl enable docker > $INSTALL_RPM_LOG
-
+ 
 
 }
 
