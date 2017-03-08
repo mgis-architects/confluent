@@ -108,18 +108,18 @@ function openZkKafkaPorts()
     systemctl status firewalld  >> $LOG_FILE
     firewall-cmd --get-active-zones  >> $LOG_FILE
     firewall-cmd --zone=public --list-ports  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${zkpserver1low}/tcp --permanent  >> $LOG_FILE  
-    #firewall-cmd --zone=public --add-port=${zkpserver1high}/tcp --permanent  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${zkpserver2low}/tcp --permanent  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${zkpserver2high}/tcp --permanent  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${zkpserver3low}/tcp --permanent  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${zkpserver3high}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpserver1low}/tcp --permanent  >> $LOG_FILE  
+    firewall-cmd --zone=public --add-port=${zkpserver1high}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpserver2low}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpserver2high}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpserver3low}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpserver3high}/tcp --permanent  >> $LOG_FILE
 
-    #firewall-cmd --zone=public --add-port=${zkpclient1}/tcp --permanent  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${kafkapclient1}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpclient1}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${kafkapclient1}/tcp --permanent  >> $LOG_FILE
    
-    #firewall-cmd --zone=public --add-port=${zkpclient2}/tcp --permanent  >> $LOG_FILE
-    #firewall-cmd --zone=public --add-port=${kafkapclient2}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${zkpclient2}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${kafkapclient2}/tcp --permanent  >> $LOG_FILE
  
     firewall-cmd --zone=public --add-port=${ccport}/tcp --permanent
  
@@ -381,8 +381,8 @@ function installControlCentreServer()
 ##############################################################
 function installServer()
 {
-   # installZookeeper 
-   # installKafka
+    installZookeeper 
+    installKafka
     installSchemaServer
     installRestServer
     installConnectionServer
