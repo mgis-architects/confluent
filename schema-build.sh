@@ -118,28 +118,15 @@ function installSchemaRegistry()
 {
 
     log "$g_prog.installSchemaRegistry: Install Schema-Registry - instance ${SERVER_INSTANCE}"
-    # echo "retcode={$?}"
-    # echo "server-name=mmo275confluentvm${ID}"
-     echo "SERVER_INSTANCE=${SERVER_INSTANCE}"
-     echo "ip=${zkKafkaSer1}"
-     echo "ip=${zkKafkaSer2}"
-     echo "ip=${zkKafkaSer3}"
-     echo "zkpclient=${zkpclient}"
-     echo "low=${zkpserverlow}"
-     echo "high=${zkpserverhigh}"
- 
+# 
     IPADDR=`cat $INI_FILE | grep srSer${SERVER_INSTANCE}`
     schemaserver=`echo ${IPADDR} | awk -F "=" '{print $2}'`
-    echo "${schemaserver}"
-    echo "${schemaport}"
-    
-
-
+#
     docker run -d --net=host --name=schema-registry-${SERVER_INSTANCE} \
        -e SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=${zkKafkaSer1}:${zkpclient},${zkKafkaSer2}:${zkpclient},${zkKafkaSer3}:${zkpclient} \
        -e SCHEMA_REGISTRY_HOST_NAME=${schemaserver} \
        -e SCHEMA_REGISTRY_LISTENERS=http://${schemaserver}:${schemaport} \
-       confluentinc/cp-schema-registry:3.1.2
+       confluentinc/cp-schema-registry:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -154,10 +141,10 @@ function installREST()
 {
 
     log "$g_prog.installREST: Install REST - instance ${SERVER_INSTANCE}"
-   
+#   
     IPADDR=`cat $INI_FILE | grep srSer${SERVER_INSTANCE}`
     schemaserver=`echo ${IPADDR} | awk -F "=" '{print $2}'`
- 
+# 
     docker run -d \
         --net=host \
         --name=kafka-rest-${SERVER_INSTANCE} \
@@ -165,7 +152,7 @@ function installREST()
         -e KAFKA_REST_LISTENERS=http://${schemaserver}:${restport} \
         -e KAFKA_REST_SCHEMA_REGISTRY_URL=http://${schemaserver}:${schemaport} \
         -e KAFKA_REST_HOST_NAME=${schemaserver} \
-        confluentinc/cp-kafka-rest:3.1.2
+        confluentinc/cp-kafka-rest:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -181,10 +168,10 @@ function installConnect()
 {
 
     log "$g_prog.installConnect: Install Connect - instance ${SERVER_INSTANCE}"
-
+#
     IPADDR=`cat $INI_FILE | grep srSer${SERVER_INSTANCE}`
     schemaserver=`echo ${IPADDR} | awk -F "=" '{print $2}'`
-
+#
     docker run -d \
        --net=host \
        --name=kafka-connect-${SERVER_INSTANCE} \
@@ -199,7 +186,7 @@ function installConnect()
        -e CONNECT_INTERNAL_KEY_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
        -e CONNECT_INTERNAL_VALUE_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
        -e CONNECT_REST_ADVERTISED_HOST_NAME=${schemaserver} \
-       confluentinc/cp-kafka-connect:3.1.2
+       confluentinc/cp-kafka-connect:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -227,7 +214,7 @@ function run()
     elif [ $platformEnvironment != "AZURE" ]; then    
         fatalError "$g_prog.run(): platformEnvironment=AZURE is the only valid setting currently"
     fi
-
+#
     eval `grep zkKafkaSer1 ${INI_FILE}`
     eval `grep zkKafkaSer2 ${INI_FILE}`
     eval `grep zkKafkaSer3 ${INI_FILE}`
@@ -240,11 +227,14 @@ function run()
     eval `grep schemaport ${INI_FILE}`
     eval `grep restport ${INI_FILE}`
     eval `grep connectport ${INI_FILE}`
-
+#
+    eval `grep confversion ${INI_FILE}`
+    if [ -z ${confversion} ]; then
+        fatalError "$g_prog.run(): Unknown parameter, check confversion parameter in iniFile"
+    fi
+#
   # function calls
     installRPMs
-  #  oracleProfile
-  #  mountMedia
     openSchemaPorts
     installServer
 }

@@ -161,7 +161,7 @@ function installControlCenter()
        -e CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS=${inttopicpart} \
        -e CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS=${streamthread} \
        -e CONTROL_CENTER_CONNECT_CLUSTER=${connClust} \
-       confluentinc/cp-enterprise-control-center:3.1.2
+       confluentinc/cp-enterprise-control-center:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -199,6 +199,11 @@ function run()
     eval `grep schemaport ${INI_FILE}`
     eval `grep restport ${INI_FILE}`
     eval `grep connectport ${INI_FILE}`
+#
+    eval `grep confversion ${INI_FILE}`
+    if [ -z ${confversion} ]; then
+        fatalError "$g_prog.run(): Unknown parameter, check confversion parameter in iniFile"
+    fi 
 #
     eval `grep ccport ${INI_FILE}`
     eval `grep nofile ${INI_FILE}`
