@@ -428,7 +428,7 @@ function run()
     eval `grep ccport ${INI_FILE}`
 #
     eval `grep confversion ${INI_FILE}` 
-    if [[ -z ${confversion} ]]; then
+    if [ -z ${confversion} ]; then
         fatalError "${g_prog}.run: Unknown version, check confversion parameter in iniFile"
     fi
 #
