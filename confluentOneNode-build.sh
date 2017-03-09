@@ -120,7 +120,13 @@ function openZkKafkaPorts()
    
     firewall-cmd --zone=public --add-port=${zkpclient2}/tcp --permanent  >> $LOG_FILE
     firewall-cmd --zone=public --add-port=${kafkapclient2}/tcp --permanent  >> $LOG_FILE
+
+    firewall-cmd --zone=public --add-port=${zkpclient3}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${kafkapclient3}/tcp --permanent  >> $LOG_FILE
  
+    firewall-cmd --zone=public --add-port=${schemaport1}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${restport1}/tcp --permanent  >> $LOG_FILE
+    firewall-cmd --zone=public --add-port=${connectport1}/tcp --permanent  >> $LOG_FILE
     firewall-cmd --zone=public --add-port=${ccport}/tcp --permanent
  
     firewall-cmd --reload  >> $LOG_FILE
@@ -144,7 +150,7 @@ function installZookeeper()
         -e ZOOKEEPER_INIT_LIMIT=5 \
         -e ZOOKEEPER_SYNC_LIMIT=2 \
         -e ZOOKEEPER_SERVERS="${zkKafkaSer1}:${zkpserver1low}:${zkpserver1high};${zkKafkaSer1}:${zkpserver2low}:${zkpserver2high};${zkKafkaSer1}:${zkpserver3low}:${zkpserver3high}" \
-         confluentinc/cp-zookeeper:3.1.2
+         confluentinc/cp-zookeeper:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -161,7 +167,7 @@ function installZookeeper()
         -e ZOOKEEPER_INIT_LIMIT=5 \
         -e ZOOKEEPER_SYNC_LIMIT=2 \
         -e ZOOKEEPER_SERVERS="${zkKafkaSer1}:${zkpserver1low}:${zkpserver1high};${zkKafkaSer1}:${zkpserver2low}:${zkpserver2high};${zkKafkaSer1}:${zkpserver3low}:${zkpserver3high}" \
-         confluentinc/cp-zookeeper:3.1.2
+         confluentinc/cp-zookeeper:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -178,7 +184,7 @@ function installZookeeper()
         -e ZOOKEEPER_INIT_LIMIT=5 \
         -e ZOOKEEPER_SYNC_LIMIT=2 \
         -e ZOOKEEPER_SERVERS="${zkKafkaSer1}:${zkpserver1low}:${zkpserver1high};${zkKafkaSer1}:${zkpserver2low}:${zkpserver2high};${zkKafkaSer1}:${zkpserver3low}:${zkpserver3high}" \
-         confluentinc/cp-zookeeper:3.1.2
+         confluentinc/cp-zookeeper:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -202,7 +208,7 @@ function installKafka()
         --name=kafka-1 \
         -e KAFKA_ZOOKEEPER_CONNECT=${zkKafkaSer1}:${zkpclient1},${zkKafkaSer1}:${zkpclient2},${zkKafkaSer1}:${zkpclient3} \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${kafkaserver1}:${kafkapclient1} \
-        confluentinc/cp-kafka:3.1.2
+        confluentinc/cp-kafka:${confversion}
 
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -218,7 +224,7 @@ function installKafka()
         --name=kafka-2 \
         -e KAFKA_ZOOKEEPER_CONNECT=${zkKafkaSer1}:${zkpclient1},${zkKafkaSer1}:${zkpclient2},${zkKafkaSer1}:${zkpclient3} \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${kafkaserver1}:${kafkapclient2} \
-        confluentinc/cp-kafka:3.1.2
+        confluentinc/cp-kafka:${confversion}
 
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -234,7 +240,7 @@ function installKafka()
         --name=kafka-3 \
         -e KAFKA_ZOOKEEPER_CONNECT=${zkKafkaSer1}:${zkpclient1},${zkKafkaSer1}:${zkpclient2},${zkKafkaSer1}:${zkpclient3} \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${kafkaserver1}:${kafkapclient3} \
-        confluentinc/cp-kafka:3.1.2
+        confluentinc/cp-kafka:${confversion}
 
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -260,7 +266,7 @@ function installSchemaServer()
        -e SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=${zkKafkaSer1}:${zkpclient1},${zkKafkaSer1}:${zkpclient2},${zkKafkaSer1}:${zkpclient3} \
        -e SCHEMA_REGISTRY_HOST_NAME=${schemaserver} \
        -e SCHEMA_REGISTRY_LISTENERS=http://${schemaserver}:${schemaport1} \
-       confluentinc/cp-schema-registry:3.1.2
+       confluentinc/cp-schema-registry:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -288,7 +294,7 @@ function installRestServer()
         -e KAFKA_REST_LISTENERS=http://${schemaserver}:${restport1} \
         -e KAFKA_REST_SCHEMA_REGISTRY_URL=http://${schemaserver}:${schemaport1} \
         -e KAFKA_REST_HOST_NAME=${schemaserver} \
-        confluentinc/cp-kafka-rest:3.1.2
+        confluentinc/cp-kafka-rest:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -323,7 +329,7 @@ function installConnectionServer()
        -e CONNECT_INTERNAL_KEY_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
        -e CONNECT_INTERNAL_VALUE_CONVERTER="org.apache.kafka.connect.json.JsonConverter" \
        -e CONNECT_REST_ADVERTISED_HOST_NAME=${schemaserver} \
-       confluentinc/cp-kafka-connect:3.1.2
+       confluentinc/cp-kafka-connect:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -366,7 +372,7 @@ function installControlCentreServer()
        -e CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS=${inttopicpart} \
        -e CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS=${streamthread} \
        -e CONTROL_CENTER_CONNECT_CLUSTER=${schemaserver}:${connectport} \
-       confluentinc/cp-enterprise-control-center:3.1.2
+       confluentinc/cp-enterprise-control-center:${confversion}
 #
     RC=$?
     if [ ${RC} -ne 0 ]; then
@@ -419,9 +425,10 @@ function run()
     eval `grep schemaport1 ${INI_FILE}`
     eval `grep restport1 ${INI_FILE}`
     eval `grep connectport1 ${INI_FILE}`
-# 
-#
     eval `grep ccport ${INI_FILE}`
+#
+    eval `grep confversion ${INI_FILE}` 
+#
     eval `grep nofile ${INI_FILE}`
     eval `grep repfactor ${INI_FILE}`
     eval `grep montopicpart ${INI_FILE}`
