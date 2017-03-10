@@ -1,19 +1,19 @@
 #!/bin/bash
 #########################################################################################
-## Kafka installations
+## Zookeeper Server installations
 #########################################################################################
-# This script only supports Azure currently, mainly due to the disk persistence method
+# This scrip installs zookeeper (Confluent) on Linux
 #
 # USAGE:
 #
-#    sudo kafka-build.sh ~/kafka-build.ini instance
+#    sudo zookeeper-server.sh ~/kafka-server.ini instance
 #
 # USEFUL LINKS: 
 # 
 #
 #########################################################################################
 
-g_prog=kafka-build
+g_prog=standalone-zookeeper-server
 RETVAL=0
 
 ######################################################
@@ -64,40 +64,38 @@ function installRPMs()
     INSTALL_RPM_LOG=$LOG_DIR/yum.${g_prog}_install.log.$$
  
     STR=""
-    # STR="$STR java-1.8.0-openjdk.x86_64i docker-engine-selinux-1.12.6-1.el7.centos docker-engine-1.12.6-1.el7.centos"
-    STR="$STR java-1.8.0-openjdk.x86_64i docker-ce-17.03.0.ce-1.el7.centos"
+    STR="$STR java-1.8.0-openjdk"
+   # STR="$STR java-1.8.0-openjdk.x86_64i docker-ce-17.03.0.ce-1.el7.centos"
     
-    unset DOCKER_HOST DOCKER_TLS_VERIFY
-    yum -y remove docker docker-ce container-selinux docker-rhel-push-plugin docker-common docker-engine-selinux docker-engine yum-utils
-
-    yum install -y yum-utils
-
-    yum-config-manager \
-       --add-repo \
-       https://download.docker.com/linux/centos/docker-ce.repo
-
-    yum makecache fast
+    yum -y install yum-utils
     
-    yum list docker-ce  --showduplicates |sort -r > $INSTALL_RPM_LOG
+    rpm --import http://packages.confluent.io/rpm/3.2/archive.key
+   
+    yum -y install ${STR} >> ${INSTALL_RPM_LOG}
+ 
+    cat > /etc/yum.repos.d/confluent.repo << EOF1 
+[Confluent.dist]
+name=Confluent repository (dist)
+baseurl=http://packages.confluent.io/rpm/3.2/7
+gpgcheck=1
+gpgkey=http://packages.confluent.io/rpm/3.2/archive.key
+enabled=1
 
-    echo "installRPMs(): to see progress tail $INSTALL_RPM_LOG"
-    
-    yum -y install $STR > $INSTALL_RPM_LOG
-
-    #if ! yum -y install $STR > $INSTALL_RPM_LOG
-    #then
-    #    fatalError "installRPMs(): failed; see $INSTALL_RPM_LOG"
-    #fi
-    systemctl start docker > $INSTALL_RPM_LOG
-    systemctl enable docker > $INSTALL_RPM_LOG
-
-
+[Confluent]
+name=Confluent repository
+baseurl=http://packages.confluent.io/rpm/3.2
+gpgcheck=1
+gpgkey=http://packages.confluent.io/rpm/3.2/archive.key
+enabled=1
+EOF1
+     log "$g_prog.installRPMs: Installing confluent-plaform-2.11"
+     yum -y install confluent-platform-2.11
 }
 
 ##############################################################
-# Open Zookeeper / Kafka Server Ports
+# Open Zookeeper ports
 ##############################################################
-function openZkKafkaPorts()
+function openZookeeperPorts()
 {
     log "$g_prog.installZookeeper: Opening firewalls ports"    
     systemctl status firewalld  >> $LOG_FILE
@@ -110,67 +108,72 @@ function openZkKafkaPorts()
     
     firewall-cmd --reload  >> $LOG_FILE
     firewall-cmd --zone=public --list-ports  >> $LOG_FILE
-
 }
 
 ##############################################################
-# Install Zookeeper 
+# Create Zookeeper properties file
 ##############################################################
-function installZookeeper()
+function createZookeeperPropertiesFile()
 {
+    ZOOKEEPER_PROP_FILE="/etc/kafka/zookeeper.properties"
+    log "$g_prog.ZookeeperPropertiesFile: Creating Zookeeper properties file ${ZOOKEEPER_PROP_FILE}"
 
-    log "$g_prog.installZookeeper: Install ZooKeeper - instance ${SERVER_INSTANCE}"
-    docker run -d \
-        --net=host \
-        --name=zk-${SERVER_INSTANCE} \
-        -e ZOOKEEPER_SERVER_ID=${SERVER_INSTANCE} \
-        -e ZOOKEEPER_CLIENT_PORT=${zkpclient} \
-        -e ZOOKEEPER_TICK_TIME=2000 \
-        -e ZOOKEEPER_INIT_LIMIT=5 \
-        -e ZOOKEEPER_SYNC_LIMIT=2 \
-        -e ZOOKEEPER_SERVERS="${zkKafkaSer1}:${zkpserverlow}:${zkpserverhigh};${zkKafkaSer2}:${zkpserverlow}:${zkpserverhigh};${zkKafkaSer3}:${zkpserverlow}:${zkpserverhigh}" \
-         confluentinc/cp-zookeeper:${confversion}
+    rm ${ZOOKEEPER_PROP_FILE}
+    cat > ${ZOOKEEPER_PROP_FILE} << EOFPROP1
+dataDir=/var/lib/zookeeper/
+dataLogDir=/var/lib/zookeeper/log
+clientPort=${zkpclient}
+maxClientCnXns=0
+initLimit=5
+syncLimit=2
+tickTime=2000
+EOFPROP1
+######################################################
 #
+######################################################
+    count=1
+    while [ ${count} -le ${zkNoSer} ]
+    do
+        zkSerIP=`cat $INI_FILE | grep zkSer${count}`
+        retip=`echo ${zkSerIP} | awk -F "=" '{print $2}'`
+        echo "server.${count}=${retip}:${zkpserverlow}:${zkpserverhigh}" >>  ${ZOOKEEPER_PROP_FILE}
+        count=$[$count+1]
+    done
+#
+#server.1=${zkSer1}:${zkpserverlow}:${zkpserverhigh}
+#server.2=${zkSer2}:${zkpserverlow}:${zkpserverhigh}
+#server.3=${zkSer3}:${zkpserverlow}:${zkpserverhigh}
+
+    mkdir -p /var/lib/zookeeper/
+    echo "${ZOOID}" > /var/lib/zookeeper/myid
+}
+
+##############################################################
+# start Zookeeper         
+##############################################################
+function startZookeeper()
+{
+    log "$g_prog.InstallZookeeper: Starting Zookeeper as a background server"
+    running=`ps -ef | grep zookeeper.properties | wc -l`
+    if [ ${running} -gt 1 ]; then
+        fatalError "$g_prog.run(): Zookeeper is already running as a background process."
+    fi
+    nohup sh /bin/zookeeper-server-start /etc/kafka/zookeeper.properties >>  /var/log/standalone-zookeeper-server/zookeeper.log.$(date +%Y%m%d_%H%M%S_%N) &
     RC=$?
     if [ ${RC} -ne 0 ]; then
-        fatalError "$g_prog.run(): Error implementing ZooKeeper - check configuration parameters"
+        fatalError "$g_prog.run(): Error starting Zookeeper - check configuration parameters"
     fi
 }
 
 ##############################################################
-# Install Kafka          
+# Install Components
 ##############################################################
-function installKafka()
+function startServer()
 {
-
-    log "$g_prog.installZookeeper: Install Kafka - instance ${SERVER_INSTANCE}"
-   
-    IPADDR=`cat $INI_FILE | grep zkKafkaSer${SERVER_INSTANCE}`
-    kafkaserver=`echo ${IPADDR} | awk -F "=" '{print $2}'`
-
-    docker run -d \
-        --net=host \
-        --name=kafka-${SERVER_INSTANCE} \
-        -e KAFKA_ZOOKEEPER_CONNECT=${zkKafkaSer1}:${zkpclient},${zkKafkaSer2}:${zkpclient},${zkKafkaSer3}:${zkpclient} \
-        -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${kafkaserver}:${kafkapclient} \
-        confluentinc/cp-kafka:${confversion}
-
-    RC=$?
-    if [ ${RC} -ne 0 ]; then
-        fatalError "$g_prog.run(): Error implementing Kafka - check configuration parameters"
-    fi
-
+       openZookeeperPorts
+       createZookeeperPropertiesFile
+       startZookeeper
 }
-
-##############################################################
-# Install components
-##############################################################
-function installServer()
-{
-    installZookeeper 
-    installKafka
-}
-
 
 function run()
 {
@@ -180,10 +183,12 @@ function run()
     elif [ $platformEnvironment != "AZURE" ]; then    
         fatalError "$g_prog.run(): platformEnvironment=AZURE is the only valid setting currently"
     fi
-
-    eval `grep zkKafkaSer1 ${INI_FILE}`
-    eval `grep zkKafkaSer2 ${INI_FILE}`
-    eval `grep zkKafkaSer3 ${INI_FILE}`
+#
+    eval `grep zkSer1 ${INI_FILE}`
+    eval `grep zkSer2 ${INI_FILE}`
+    eval `grep zkSer3 ${INI_FILE}`
+#
+    eval `grep zkNoSer ${INI_FILE}`
 #
     eval `grep zkpclient ${INI_FILE}`
     eval `grep zkpserverlow ${INI_FILE}`
@@ -191,14 +196,25 @@ function run()
     eval `grep kafkapclient ${INI_FILE}`
 #
     eval `grep confversion ${INI_FILE}`
-    if [ -z ${confversion} ]; then
-        fatalError "$g_prog.run(): Unknown parameter, check confversion parameter in iniFile"
-    fi
-#
-  # function calls
+# 
+    count=1
+    zkServers=""
+######################################################
+# String the Zookeeper servers together
+#######################################################
+    while [ ${count} -le ${zkNoSer} ]
+    do
+        zkSerIP=`cat $INI_FILE | grep zkSer${count}`
+        retip=`echo ${zkSerIP} | awk -F "=" '{print $2}'`
+        if [ ${count} -gt 1 ]; then
+             zkServers="${zkServers},"
+        fi
+        zkServers="${zkServers}${retip}:${zkpclient}"
+        count=$[$count+1]
+    done
+  # Functions
     installRPMs
-    openZkKafkaPorts
-    installServer
+    startServer
 }
 
 
@@ -219,16 +235,11 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 INI_FILE_PATH=$1
-SERVER_INSTANCE=${2}
-
+ZOOID=${2}
+#
 if [[ -z $INI_FILE_PATH ]]; then
     fatalError "${g_prog} called with null parameter, should be the path to the driving ini_file"
 fi
-
-if [[ -z $SERVER_INSTANCE ]]; then
-    fatalError "${g_prog} called with null parameter, missing server-instance"
-fi
-
 
 if [[ ! -f $INI_FILE_PATH ]]; then
     fatalError "${g_prog} ini_file cannot be found"
@@ -238,12 +249,15 @@ if ! mkdir -p $LOG_DIR; then
     fatalError "${g_prog} cant make $LOG_DIR"
 fi
 
+if [[ -z ${ZOOID} ]]; then
+    fatalError "${g_prog} Invalid parameters - Zookeeper ID is missing"
+fi
 
 chmod 777 $LOG_DIR
 
 cp $INI_FILE_PATH $INI_FILE
 
-run ${SERVER_INSTANCE}
+run
 
 log "$g_prog ended cleanly"
 exit $RETVAL
